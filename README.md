@@ -1,14 +1,14 @@
 # Proactive Handover Type Prediction and Parameter Optimization Based on Machine Learning
 # Description
 This paper proposes a scheme that proactively predicts HO types and dynamically adjusts HCPs based on RL and supervised learning, and performs a performance analysis on this scheme.
-This code provides a simulation scenario based on A3 event handover. It also gives a parameter TTT and HOM optimization scheme. Some code is provided in the mian file for the reader to study
+This code provides a simulation scenario based on A3 event handover. It also gives a parameter TTT and HOM optimization scheme. Some code is provided in the mian file for the reader to study. Since there is too much data, only some of the data files are shown here for the reader's discussion. If you need detailed data files please contact email hqf6800@gmail.com.
+
 # Dependencies
 - python 3.9.13
 - scikit-learn 1.4.2
 - tensorflow 2.16.1
 - tensorflow-gpu 2.6.0
 - xgboost 2.0.3
-- 
 # Usage
 This simulator can consider also the movement of UEs:
 -   UEs have fixed speed and there are two possible movements implemented at this time: 
