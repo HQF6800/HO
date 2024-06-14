@@ -34,6 +34,7 @@ classifiers = [
               LogisticRegression(max_iter=1000,class_weight='balanced',solver='newton-cg',multi_class='auto'),
               RandomForestClassifier(n_estimators=5,max_depth=17),
               MLPClassifier(hidden_layer_sizes=(512, 512),max_iter=500,learning_rate='adaptive',learning_rate_init=0.01,alpha=0.001,activation='relu',solver='adam',batch_size=64,early_stopping=True,validation_fraction=0.1),
+              MLPClassifier(max_iter=1000),
               DecisionTreeClassifier(max_depth=18, min_samples_split=4),
               AdaBoostClassifier(n_estimators=5,learning_rate=0.01),
               XGBClassifier(n_estimators=500,learning_rate=0.01,max_depth=25,min_child_weight=1,gamma=0.3,objective='multi:softmax')
