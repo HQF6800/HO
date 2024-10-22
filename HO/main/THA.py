@@ -6,17 +6,17 @@ import matplotlib.pyplot as plt
 from HO_initialize import *
 from globalval import GlobalVal as gv
 plt.rc('text', usetex=True)
-move_points = 100
+move_points = 30000
 if __name__ == '__main__':
-    for episode in range(10):
-        # J = 1+episode
+    for episode in range(200):
+        J = 1+episode
         print('episode= ', episode)
         v,dir,HOM,TTT=Compute.reset()# Initialize user and HCPs
         n=0
         while n < move_points:
-            if n % 60 == 0:  # Choose direction
-                # random.seed(J)#Set fixed paths for easy comparison
-                # J += 5
+            if n % 60 == 0:  # Choose direction every 6 seconds
+                random.seed(J)#Set fixed paths for easy comparison
+                J += 5
                 # v = np.random.randint(2, 8)  # Random selection of speed
                 dir= random.choice(gv.directions)
             next_x,next_y,prior_ALL_distance,prior_ALL_RSRP,tar_BS_ID,prior_SSINR,prior_TSINR,throughput =\
@@ -55,7 +55,10 @@ if __name__ == '__main__':
         # axs.set_xlabel(r' x{m}', fontsize=10)
         # axs.set_ylabel(r' y{m}', fontsize=10)
         # axs.legend(loc='upper left', frameon=True, prop={'size': 8})
-        # plt.savefig('D:\\pythonProject\\HO\\figures\\Throughput_path.png', format='png', dpi=300)
+        # # plt.savefig('..\\figures\\Throughput_path.png', format='png', dpi=300)
+        # dic = {'x':gv.prior_UE_x,'y':gv.prior_UE_y}
+        # df=pd.DataFrame(dic)
+        # df.to_csv('..\\data\\' +'user walk path.csv',index = False)
         # axs.set_rasterized(True)
         # plt.grid()
         # plt.show()

@@ -25,7 +25,10 @@ data = pd.read_csv('../data/THA.csv')
 label = data.pop('INDEX') # Label Extraction
 scaler = StandardScaler() # standardization
 scaled_data = scaler.fit_transform(data)
+scaled_data_df = pd.DataFrame(scaled_data, columns=data.columns)
+# second_column_data = scaled_data_df.iloc[:, 0:6]
 X_train,X_test,Y_train,y_test = train_test_split(scaled_data,label,test_size=0.3) # 3. 7 is divided into test set and training set
+# X_train,X_test,Y_train,y_test = train_test_split(second_column_data,label,test_size=0.3) # 3. 7 is divided into test set and training set
 # print(X_train.shape,Y_train.shape)
 smo = SMOTE(random_state=42) # Data balancing process
 smo_X_train,smo_y_train = smo.fit_resample(X_train,Y_train)
@@ -35,6 +38,7 @@ clf_XGB = XGBClassifier(n_estimators=500,learning_rate=0.01,max_depth=25,min_chi
 clf_XGB.fit(smo_X_train,smo_y_train)
 clf_XGB.save_model("../model/model.xgb")
 prediction_XGB = clf_XGB.predict(X_test)
+
 print('XGB accuracy',accuracy_score(prediction_XGB,y_test))
 #MLP
 # MLP =MLPClassifier(hidden_layer_sizes=(512, 512),max_iter=1000,learning_rate='adaptive',learning_rate_init=0.01,alpha=0.001,activation='relu',solver='adam',batch_size=64,early_stopping=True,validation_fraction=0.1)
@@ -54,7 +58,7 @@ from xgboost import plot_importance
 # test_data = label_binarize(smo_y_test, classes=[0, 1, 2, 3])
 # n_classes = prediction.shape[1]
 
-# ROC_AUC curved line
+'''ROC_AUC curved line'''
 # fpr = dict()
 # tpr = dict()
 # roc_auc = dict()
@@ -101,7 +105,7 @@ from xgboost import plot_importance
 # plt.title('AUC curved line')
 # plt.xlabel('classes')
 # plt.ylabel('Accuracy')
-# confusion matrix
+'''confusion matrix'''
 # def plot_confusion_matrix(cm, labels_name, title):
 #     cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]    #  normalize
 #     plt.imshow(cm, interpolation='nearest')    # Displaying images on a specific window
