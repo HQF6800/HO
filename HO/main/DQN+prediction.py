@@ -8,7 +8,7 @@ from xgboost.sklearn import XGBClassifier
 tf.compat.v1.disable_eager_execution()
 from DQN_model import DeepQNetwork
 import pickle
-# RL = DeepQNetwork(len(gv.ACTION1), 9)
+# RL = DeepQNetwork(len(gv.ACTION1), 6)
 RL = DeepQNetwork(len(gv.ACTION1), 9)
 move_points = 30000
 
