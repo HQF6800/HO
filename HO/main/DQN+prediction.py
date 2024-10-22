@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 from HO_initialize import *
 from globalval import GlobalVal as gv
 import tensorflow as tf
@@ -7,17 +8,18 @@ from xgboost.sklearn import XGBClassifier
 tf.compat.v1.disable_eager_execution()
 from DQN_model import DeepQNetwork
 import pickle
+# RL = DeepQNetwork(len(gv.ACTION1), 9)
 RL = DeepQNetwork(len(gv.ACTION1), 9)
 move_points = 30000
 
-
 if __name__ == '__main__':
     '''训练网络'''
-    for episode in range(100):
+    for episode in range(200):
         J = 1+episode
         print('episode= ', episode)
         v,dir,HOM,TTT=Compute.reset()# Initialize user and HCPs
         n=0
+        REWARD=[]
         while n < move_points:
             if n % 60 == 0:  # Choose direction
                 random.seed(J)#Set fixed paths for easy comparison
@@ -38,11 +40,12 @@ if __name__ == '__main__':
                 gv.V.append(v), gv.DIR.append(dir)
                 old_state = [gv.connect_BS[-1], tar_BS_ID, prior_ALL_RSRP[gv.connect_BS[-1]], prior_ALL_RSRP[tar_BS_ID],
                              prior_SSINR, prior_TSINR,prior_ALL_distance[tar_BS_ID], v, dir]
+                # old_state = [gv.connect_BS[-1], tar_BS_ID, prior_ALL_RSRP[gv.connect_BS[-1]], prior_ALL_RSRP[tar_BS_ID],
+                #              prior_SSINR, prior_TSINR]
                 old_state = np.array(old_state)
                 #Selection of actions according to State
                 action = RL.choose_action(old_state)
                 NEW_HOM = gv.ACTION1[action]
-                # print(NEW_HOM)
                 '''handover_prediction'''
                 # Loading XGBClassifier Models
                 '''XGB'''
@@ -97,9 +100,12 @@ if __name__ == '__main__':
                     Compute.step(gv.prior_UE_x[-1],gv.prior_UE_y[-1],v,dir,gv.connect_BS,HOM)
                 # Calculating the reward function
                 reward =Compute.compute_reward(throughput,TLHOR,TEHOR,PPHOR)
+                # REWARD.append(reward)
                 # Update State
                 new_state =[gv.connect_BS[-1], tar_BS_ID, prior_ALL_RSRP[gv.connect_BS[-1]], prior_ALL_RSRP[tar_BS_ID],
                              prior_SSINR, prior_TSINR,prior_ALL_distance[tar_BS_ID], v, dir]
+                # new_state =[gv.connect_BS[-1], tar_BS_ID, prior_ALL_RSRP[gv.connect_BS[-1]], prior_ALL_RSRP[tar_BS_ID],
+                #              prior_SSINR, prior_TSINR]
                 new_state = np.array(new_state)
                 # Experience playback storage
                 RL.store_transition(old_state,NEW_HOM,reward,new_state)
@@ -109,25 +115,33 @@ if __name__ == '__main__':
                 n=n+1
                 continue
         RL.learn()#Updating the Q-value
-        # RL.save_net()#Saving Networks
+        RL.save_net()#Saving Networks
+        # average_reward = sum(REWARD) / len(REWARD) if REWARD else 0
+        # gv.Average_reward.append(average_reward)
         del gv.connect_BS[-1]
-        # Compute.save_csv(gv.connect_BS, gv.target_BS, gv.S_RSRP, gv.T_RSRP, gv.S_SINR, gv.T_SINR, gv.HO_start_distance,
-        #                  gv.V, gv.DIR, gv.INDEX, episode)  # Save feature data
-    # Compute.merge_all_csv()  # merge data
+        Compute.save_csv(gv.connect_BS, gv.target_BS, gv.S_RSRP, gv.T_RSRP, gv.S_SINR, gv.T_SINR, gv.HO_start_distance,
+                         gv.V, gv.DIR, gv.INDEX, episode)  # Save feature data
+    Compute.merge_all_csv()  # merge data
     print('PPHOR,TLHOR,TEHOR',PPHOR,TLHOR,TEHOR)
-    # print(gv.Throughput)
-    RL.plot_cost(episode)#plot the loss function
-
+    # RL.plot_cost(episode)#plot the loss function
+    # '''plot reward'''
+    # Compute.save_reward()
+    # plt.plot(np.arange(len(gv.Average_reward)), gv.Average_reward, label='reward')
+    # plt.ylabel('Reward')
+    # plt.xlabel('Train episodes')
+    # plt.legend(loc='upper right', frameon=True, prop={'size': 8})
+    # plt.show()
     '''DQN算法优化'''
-    # for episode in range(1):
-    #     # J = 1+episode
+    # for episode in range(200):
+    #     J = 1+episode
     #     print('episode= ', episode)
     #     v, dir, HOM, TTT = Compute.reset()  # Initialize user and HCPs
     #     n = 0
+    #     REWARD = []
     #     while n < move_points:
-    #         if n % 50 == 0:  # Choose direction every 5 seconds
-    #             # random.seed(J)#Set fixed paths for easy comparison
-    #             # J += 5
+    #         if n % 60 == 0:  # Choose direction every 5 seconds
+    #             random.seed(J)#Set fixed paths for easy comparison
+    #             J += 5
     #             dir = random.choice(gv.directions)
     #         next_x, next_y, prior_ALL_distance, prior_ALL_RSRP, tar_BS_ID, prior_SSINR, prior_TSINR, throughput = \
     #             Compute.step(gv.prior_UE_x[-1], gv.prior_UE_y[-1], v, dir, gv.connect_BS, HOM)
@@ -147,7 +161,6 @@ if __name__ == '__main__':
     #             # Selection of actions according to State
     #             action = RL.choose_action(old_state)
     #             NEW_HOM = gv.ACTION1[action]
-    #             print(NEW_HOM)
     #             '''handover_prediction'''
     #             # Loading XGBClassifier Models
     #             clf_XGB = XGBClassifier()
@@ -156,9 +169,9 @@ if __name__ == '__main__':
     #             data_reshaped = old_state.reshape(-1, 1).T
     #             prediction_type = clf_XGB.predict(data_reshaped)
     #             # Selection of HCPs based on handover type
-    #             NEW_HOM, NWE_TTT = Compute.HCP_choose(prediction_type, HOM, NEW_HOM, TTT)
+    #             NEW_HOM, NEW_TTT = Compute.HCP_choose(prediction_type, HOM, NEW_HOM, TTT)
     #             # Calculate within TTT whether sinr is satisfied with A3
-    #             TTT_SSINR, TTT_TSINR, TTT_TRSRP, TTT_SRSRP, ALL_RSRP = Compute.satisfyTTT(NWE_TTT, gv.prior_UE_x[-1], gv.prior_UE_y[-1],v, dir, gv.connect_BS,tar_BS_ID)
+    #             TTT_SSINR, TTT_TSINR, TTT_TRSRP, TTT_SRSRP, ALL_RSRP = Compute.satisfyTTT(NEW_TTT, gv.prior_UE_x[-1], gv.prior_UE_y[-1],v, dir, gv.connect_BS,tar_BS_ID)
     #             # Determining the type of HO
     #             Compute.label(TTT_SSINR, TTT_TSINR
     #                           , TTT_TRSRP, TTT_SRSRP, ALL_RSRP, NEW_HOM, tar_BS_ID)
@@ -169,6 +182,7 @@ if __name__ == '__main__':
     #                 Compute.step(gv.prior_UE_x[-1], gv.prior_UE_y[-1], v,dir, gv.connect_BS, HOM)
     #             # Calculating the reward function
     #             reward = Compute.compute_reward(throughput, TLHOR, TEHOR, PPHOR)
+    #             REWARD.append(reward)
     #             # Update State
     #             new_state = [gv.connect_BS[-1], tar_BS_ID, prior_ALL_RSRP[gv.connect_BS[-1]], prior_ALL_RSRP[tar_BS_ID],
     #                          prior_SSINR, prior_TSINR,prior_ALL_distance[tar_BS_ID], v, dir]
@@ -180,10 +194,18 @@ if __name__ == '__main__':
     #         else:
     #             n = n + 1
     #             continue
+    #     average_reward = sum(REWARD) / len(REWARD) if REWARD else 0
+    #     gv.Average_reward.append(average_reward)
     #     del gv.connect_BS[-1]
-        # Compute.save_csv(gv.connect_BS, gv.target_BS, gv.S_RSRP, gv.T_RSRP, gv.S_SINR, gv.T_SINR, gv.HO_start_distance,
-        #                  gv.V, gv.DIR, gv.INDEX, episode)  # Save feature data
+    #     Compute.save_csv(gv.connect_BS, gv.target_BS, gv.S_RSRP, gv.T_RSRP, gv.S_SINR, gv.T_SINR, gv.HO_start_distance,
+    #                      gv.V, gv.DIR, gv.INDEX, episode)  # Save feature data
     # Compute.merge_all_csv()  # merge data
     # print('PPHOR,TLHOR,TEHOR',PPHOR,TLHOR,TEHOR)
-    # print(gv.Throughput)
     # RL.plot_cost(episode)
+    # '''plot reward'''
+    # Compute.save_reward()
+    # plt.plot(np.arange(len(gv.Average_reward)), gv.Average_reward, label='reward')
+    # plt.ylabel('Reward')
+    # plt.xlabel('Train episodes')
+    # plt.legend(loc='upper right', frameon=True, prop={'size': 8})
+    # plt.show()
